@@ -114,24 +114,25 @@
                     loadingCover.style.display = "none";
                     console.log("Unity başarıyla yüklendi!");
 
-                    // ZORLA SDK BAŞLAT + COİN SATIŞI DEVRE DIŞI
+                    // ZORLA SDK + REKLAM ATLAT
                     setTimeout(async () => {
                         if (ygGameInstance) {
                             await RequestingEnvironmentData();
                             await InitPlayer();
                             await LoadCloud();
                             await InitReview();
-                            await InitPayments(); // NO_DATA döner
+                            await InitPayments();
                             await GetAllGames();
                             await GetFlags();
 
-                            // SDK TAMAMLANDI → OYUN DEVAM EDER
                             ygGameInstance.SendMessage('YG2Instance', 'InitSDKComplete');
-                            console.log("%cSDK ZORLA TAMAMLANDI → OYUN AÇILIYOR", "color: lime; font-weight: bold; font-size: 16px;");
+                            console.log("%cSDK ZORLA TAMAMLANDI", "color: lime; font-weight: bold;");
 
-                            // COİN SATIN ALIMI DEVRE DIŞI → DONMA YOK
-                            ygGameInstance.SendMessage('YG2Instance', 'OnPurchaseFailed', 'all');
-                            console.log("%cCOİN SATIN ALIMI DEVRE DIŞI → BUTON TIKLANSA DA DONMAZ", "color: orange; font-weight: bold;");
+                            // REKLAM ATLAT → DEVAM ET BUTONU ÇALIŞIR
+                            setTimeout(() => {
+                                YG2Instance('CloseInterAdv', 'true');
+                                console.log("%cREKLAM ATLANIYOR → DEVAM ET BUTONU ÇALIŞIYOR", "color: cyan; font-weight: bold; font-size: 16px;");
+                            }, 300);
                         }
                     }, 500);
 
@@ -211,7 +212,7 @@
 
     function InitGame() {
         initGame = true;
-        console.log("Oyun başlatıldı (SDK'sız + Coin Satışı Kapalı)");
+        console.log("Oyun başlatıldı (Reklamsız + Devam Et Çalışır)");
     }
 
     function IsLocalHost() { return true; }
@@ -240,7 +241,7 @@
 
     function FocusGame() { canvas.focus(); }
 
-    // --- TÜM SDK FONKSİYONLARI (COİN SATIŞI KAPALI) ---
+    // --- TÜM SDK FONKSİYONLARI ---
     function RequestingEnvironmentData() {
         return new Promise((resolve) => {
             const fake = JSON.stringify({ language:"en", domain:"com", deviceType:"desktop", isMobile:false, isDesktop:true, isTablet:false, isTV:false, appID:"000000", browserLang:"en-US", payload:"", platform:navigator.platform, browser:"Chrome" });
@@ -269,25 +270,26 @@
     }
 
     function InitReview() { return Promise.resolve('false'); }
+    function InitPayments() { return Promise.resolve(NO_DATA); }
     function GetAllGames() { return Promise.resolve(NO_DATA); }
     function GetFlags() { return Promise.resolve(NO_DATA); }
 
-    function InitPayments() {
-        return new Promise((resolve) => {
-            paymentsData = NO_DATA;
-            YG2Instance('PaymentsEntries', NO_DATA);
-            resolve(NO_DATA);
-        });
-    }
-
-    // COİN SATIŞI TAMAMEN KAPALI
+    // COİN SATIŞI KAPALI
     function BuyPayments(id) {
-        console.log("Coin satın alımı devre dışı!");
         YG2Instance('OnPurchaseFailed', id);
     }
 
-    function ConsumePurchase() { /* no-op */ }
-    function ConsumePurchases() { /* no-op */ }
+    // REKLAM ATLAT → DEVAM ET ÇALIŞIR
+    function InterAdvShow() {
+        console.log("Interstitial Adv atlanıyor...");
+        setTimeout(() => {
+            YG2Instance('OpenInterAdv');
+            setTimeout(() => {
+                YG2Instance('CloseInterAdv', 'true');
+                console.log("Reklam kapandı → Devam et aktif");
+            }, 100);
+        }, 50);
+    }
 
     // Diğer fonksiyonlar
     const noop = () => {};
@@ -296,7 +298,6 @@
     window.Review = noop;
     window.SetLeaderboard = noop;
     window.GetLeaderboard = noop;
-    window.InterAdvShow = noop;
     window.OpenAuthDialog = noop;
 
     // Visibility
@@ -306,7 +307,7 @@
     window.addEventListener('focus', () => {});
     window.addEventListener('pointerdown', () => { FocusGame(); });
 
-    console.log("%cYANDEX SDK KALDIRILDI | COİN SATIŞI KAPALI | OYUN DONMAZ", "color: #00ff00; font-size: 18px; font-weight: bold; background: #000; padding: 10px;");
+    console.log("%cREKLAM ATLANIYOR | DEVAM ET BUTONU ÇALIŞIR | SDK YOK", "color: #00ff00; font-size: 18px; font-weight: bold; background: #000; padding: 10px;");
 </script>
 
 <!-- GOOGLE -->
